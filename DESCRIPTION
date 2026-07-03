@@ -1,0 +1,29 @@
+Package: BioTIP
+Type: Package
+Title: BioTIP: An R package for characterization of Biological
+        Tipping-Point
+Version: 1.26.0
+Author: Zhezhen Wang, Andrew Goldstein, Yuxi Sun, Biniam Feleke, Qier An, Antonio Feliciano, Xinan Yang
+Maintainer: Felix Yu <felixy@uchicago.edu> and X Holly Yang <xyang2@uchicago.edu>
+Description: Adopting tipping-point theory to transcriptome profiles 
+     to unravel disease regulatory trajectory.
+Depends: R (>= 3.6)
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.0
+Suggests: knitr, markdown, base, rmarkdown, ggplot2
+VignetteBuilder: knitr
+biocViews: Sequencing, RNASeq, GeneExpression, Transcription, Software
+URL: https://github.com/xyang2uchicago/BioTIP
+Imports: igraph, cluster, psych, stringr, GenomicRanges, MASS, scran,
+        methods, stats, utils, grDevices, graphics, foreach, doParallel
+git_url: https://git.bioconductor.org/packages/BioTIP
+git_branch: RELEASE_3_23
+git_last_commit: 9c5c23b
+git_last_commit_date: 2026-04-28
+Repository: Bioconductor 3.23
+Date/Publication: 2026-04-28
+NeedsCompilation: no
+Packaged: 2026-04-28 20:56:34 UTC; biocbuild
