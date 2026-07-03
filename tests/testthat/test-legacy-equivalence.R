@@ -91,3 +91,11 @@ test_that("simulationMCI falls back to serial when PSOCK cluster creation fails"
   )
   expect_equal(actual, expected)
 })
+
+test_that("hot simulation loops do not include artificial sleeps", {
+  hot_functions <- c("simulationMCI", "simulation_Ic", "optimize.sd_selection")
+  for (fn in hot_functions) {
+    body_text <- paste(deparse(getFromNamespace(fn, "BioTIP")), collapse = "\n")
+    expect_false(grepl("Sys[.]sleep", body_text), info = fn)
+  }
+})

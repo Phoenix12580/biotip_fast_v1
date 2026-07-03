@@ -133,7 +133,6 @@ function (obs.x, sampleL, counts, B = 1000, fun = c("cor", "BioTIP"),
             m[, i] <- BioTIP::getIc(counts, sampleL = sampleL, 
                 genes = random[, i], output = output, fun = fun, 
                 shrink = shrink, use = use, PCC_sample.target = PCC_sample.target)
-            Sys.sleep(0.01)
             if (i == B) 
                 cat("Done!\n")
         }

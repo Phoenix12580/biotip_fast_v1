@@ -191,7 +191,6 @@ function (df, samplesL, B = 100, percent = 0.80000000000000004,
                 N.random[[j]][sdtop[[j]], i] = 1
             }
         }
-        Sys.sleep(0.01)
         close(pb)
     }
     if (doParallel) {
