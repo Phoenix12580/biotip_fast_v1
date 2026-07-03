@@ -12,7 +12,8 @@ getIc(
   fun = c("cor", "BioTIP"),
   shrink = TRUE,
   use = c("everything", "all.obs", "complete.obs", "na.or.complete",
-    "pairwise.complete.obs")
+    "pairwise.complete.obs"),
+  PCC_sample.target = 1
 )
 }
 \arguments{
@@ -44,6 +45,10 @@ to ignore missing values, analogous to how \code{cor(X, use = "pairwise.complete
 for computing covariances in the presence of missing values.
 This must be (an abbreviation of) one of the strings "everything", "all.obs",
 "complete.obs", "na.or.complete", or "pairwise.complete.obs".}
+
+\item{PCC_sample.target}{A numeric value between 0 and 1 or a character choice among
+\code{"none"}, \code{"zero"}, \code{"average"}, and \code{"half"}, used as the sample-sample
+correlation shrinkage target when \code{fun = "BioTIP"}.}
 }
 \value{
 A list of numeric values,  whose length and names are inherited from \code{sampleL}

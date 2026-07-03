@@ -10,7 +10,7 @@ function (igraphL, steps = 4)
     groups = list()
     for (i in seq_along(igraphL)) {
         if (nrow(as_data_frame(igraphL[[i]])) != 0) {
-            groups[[i]] = cluster_walktrap(igraphL[[i]], weight = abs(E(igraphL[[i]])$weight), 
+            groups[[i]] = cluster_walktrap(igraphL[[i]], weights = abs(E(igraphL[[i]])$weight), 
                 steps = steps[i])
         }
         else {

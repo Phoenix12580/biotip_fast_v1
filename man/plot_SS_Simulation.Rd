@@ -12,7 +12,8 @@ plot_SS_Simulation(
   ylim = NULL,
   order = NULL,
   main = "1st max - 2nd max",
-  ylab = "1st max - 2nd max"
+  ylab = "Density",
+  na.rm = TRUE
 )
 }
 \arguments{
@@ -35,6 +36,8 @@ Default is 0,  meaning labels are parallel.
 \item{main}{A character vector. The title of the plot. Default is NULL.}
 
 \item{ylab}{titles y axes, as in plot.}
+
+\item{na.rm}{A logical value indicating whether missing values are removed before density calculation.}
 }
 \value{
 Return a plot of the observed Ic (red) and simulated Ic (grey) scores per state.

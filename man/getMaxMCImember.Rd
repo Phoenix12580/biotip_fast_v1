@@ -4,7 +4,7 @@
 \alias{getMaxMCImember}
 \title{Identifying the 'Biomodule'}
 \usage{
-getMaxMCImember(membersL, MCIl, minsize = 1)
+getMaxMCImember(membersL, MCIl, minsize = 1, n = 1)
 }
 \arguments{
 \item{membersL}{A list of integer vectors with unique ids as names. Each
@@ -19,6 +19,8 @@ second element of the output from function \code{getMCI}.}
 
 \item{minsize}{A numerical value of the minimum module size (the number of
 transcripts in a cluster) to output for downstream analysis.}
+
+\item{n}{Number of top modules to return per state.}
 }
 \value{
 A nested list whose length is the length of the input object

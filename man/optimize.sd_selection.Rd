@@ -13,7 +13,9 @@ optimize.sd_selection(
   cutoff = 0.01,
   method = c("other", "reference", "previous", "itself", "longitudinal reference"),
   control_df = NULL,
-  control_samplesL = NULL
+  control_samplesL = NULL,
+  n_cores = 3,
+  doParallel = TRUE
 )
 }
 \arguments{
@@ -54,6 +56,10 @@ of control samples as column names,  only used for method \code{longitudinal ref
 
 \item{control_samplesL}{A list of characters with stages as names of control
 samples,  required for method 'longitudinal reference'.}
+
+\item{n_cores}{An integer giving the number of worker processes to use when \code{doParallel = TRUE}.}
+
+\item{doParallel}{A logical value indicating whether to use the parallel bootstrap path.}
 }
 \value{
 A list of dataframe of filtered transcripts with the highest standard

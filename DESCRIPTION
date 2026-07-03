@@ -13,13 +13,15 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
-Suggests: knitr, markdown, base, rmarkdown, ggplot2, testthat (>= 3.0.0)
+Suggests: knitr, markdown, base, rmarkdown, ggplot2, monocle3,
+        testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 biocViews: Sequencing, RNASeq, GeneExpression, Transcription, Software
 URL: https://github.com/xyang2uchicago/BioTIP
 Imports: igraph, cluster, psych, stringr, GenomicRanges, MASS, scran,
-        methods, stats, utils, grDevices, graphics, foreach, doParallel
+        methods, stats, utils, grDevices, graphics, foreach, doParallel,
+        Matrix, SummarizedExperiment, SingleCellExperiment, S4Vectors
 git_url: https://git.bioconductor.org/packages/BioTIP
 git_branch: RELEASE_3_23
 git_last_commit: 9c5c23b

@@ -211,15 +211,7 @@ function (len, samplesL, df, adjust.size = FALSE, B = 1000, fun = c("cor",
         mci_inner(len, countsL, adjust.size, fun = fun, PCC_gene.target = PCC_gene.target, 
             M = M, random_id = random_ids[[i]])
     }
-    if (doParallel && B > 1 && n_cores > 1) {
-        n_cores <- min(n_cores, max(1, parallel::detectCores() - 
-            1), B)
-        cluster <- parallel::makeCluster(n_cores)
-        on.exit(parallel::stopCluster(cluster), add = TRUE)
-        cols <- parallel::parLapply(cluster, seq_len(B), worker)
-        m <- do.call(cbind, cols)
-    }
-    else {
+    run_serial <- function() {
         if (progress) 
             pb <- txtProgressBar(min = 0, max = B, style = 3)
         m <- matrix(nrow = length(samplesL), ncol = B)
@@ -232,6 +224,25 @@ function (len, samplesL, df, adjust.size = FALSE, B = 1000, fun = c("cor",
         }
         if (progress) 
             close(pb)
+        m
+    }
+    if (doParallel && B > 1 && n_cores > 1) {
+        n_cores <- min(n_cores, max(1, parallel::detectCores() - 
+            1), B)
+        cluster <- tryCatch(parallel::makeCluster(n_cores), error = function(e) e)
+        if (inherits(cluster, "error")) {
+            warning("parallel cluster could not be created; falling back to serial: ", 
+                conditionMessage(cluster), call. = FALSE)
+            m <- run_serial()
+        }
+        else {
+            on.exit(parallel::stopCluster(cluster), add = TRUE)
+            cols <- parallel::parLapply(cluster, seq_len(B), worker)
+            m <- do.call(cbind, cols)
+        }
+    }
+    else {
+        m <- run_serial()
     }
     row.names(m) = names(countsL)
     return(m)
@@ -281,8 +292,10 @@ function (members, countsL, adjust.size, fun = c("cor", "BioTIP"),
     return(MCI)
 }
 getNextMaxStats <-
-function (membersL, idL = maxMCIms[["idx"]], whoisnext, which.next = 2) 
+function (membersL, idL = NULL, whoisnext, which.next = 2) 
 {
+    if (is.null(idL)) 
+        stop("please provide idL, usually the 'idx' element returned by getMaxMCImember")
     score <- array(dim = length(whoisnext))
     names(score) <- whoisnext
     idx <- lapply(whoisnext, function(x) idL[[x]][which.next])

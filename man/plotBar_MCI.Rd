@@ -11,7 +11,8 @@ plotBar_MCI(
   nc = NULL,
   order = NULL,
   minsize = 3,
-  states = NULL
+  states = NULL,
+  title.size = 30
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ Default is NULL which uses the input list order.}
 
 \item{states}{A character of the state names to be shown on the plot. Default is NULL,
 assign this if you want to show all states including states without nodes.}
+
+\item{title.size}{Numeric title size passed to plotting text.}
 }
 \value{
 Return a barplot of MCI scores across states.

@@ -11,7 +11,7 @@ plot_Ic_Simulation(
   ylim = NULL,
   order = NULL,
   main = NULL,
-  ylab = "Ic",
+  ylab = "Ic.shrink",
   fun = c("matplot", "boxplot"),
   which2point = NULL
 )

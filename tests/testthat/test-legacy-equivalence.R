@@ -60,3 +60,34 @@ test_that("getNetwork computes one correlation test per state", {
   call_count <- get(".__biotip_corr_test_call_count__", envir = .GlobalEnv)
   expect_equal(call_count, length(network_input))
 })
+
+test_that("BioTIP.wrap size filter references its public argument", {
+  wrap_body <- paste(deparse(getFromNamespace("BioTIP.wrap", "BioTIP")), collapse = "\n")
+  expect_false(grepl("getTopMCI[.]gene[.]maxsiz(?!e)", wrap_body, perl = TRUE))
+})
+
+test_that("simulationMCI falls back to serial when PSOCK cluster creation fails", {
+  set.seed(12)
+  df <- matrix(rnorm(24 * 15), nrow = 24)
+  rownames(df) <- paste0("g", seq_len(nrow(df)))
+  colnames(df) <- paste0("s", seq_len(ncol(df)))
+  samplesL <- split(colnames(df), rep(paste0("state", 1:3), each = 5))
+  M <- cor.shrink(df, Y = NULL, MARGIN = 1, shrink = TRUE, target = "zero")
+
+  set.seed(102)
+  expected <- simulationMCI(4, samplesL, df, B = 7, fun = "BioTIP", M = M, progress = FALSE)
+
+  trace("makeCluster",
+        where = asNamespace("parallel"),
+        tracer = quote(stop("forced cluster failure")),
+        print = FALSE)
+  on.exit(untrace("makeCluster", where = asNamespace("parallel")), add = TRUE)
+
+  set.seed(102)
+  expect_warning(
+    actual <- simulationMCI(4, samplesL, df, B = 7, fun = "BioTIP", M = M,
+                            doParallel = TRUE, n_cores = 2, progress = FALSE),
+    "falling back to serial"
+  )
+  expect_equal(actual, expected)
+})

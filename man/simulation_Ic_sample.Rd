@@ -17,7 +17,8 @@ simulation_Ic_sample(
   use = c("everything", "all.obs", "complete.obs", "na.or.complete",
     "pairwise.complete.obs"),
   output = c("Ic", "PCCg", "PCCs"),
-  plot = FALSE
+  plot = FALSE,
+  PCC_sample.target = 1
 )
 }
 \arguments{
@@ -59,6 +60,10 @@ This must be (an abbreviation of) one of the strings "everything", "all.obs",
 'PCCg' is the PCC between genes (numerator) and 'PCCs' is PCC between samples (denominator)}
 
 \item{plot}{A Bollen value indicating whether a density plot will be plotted.}
+
+\item{PCC_sample.target}{A numeric value between 0 and 1 or a character choice among
+\code{"none"}, \code{"zero"}, \code{"average"}, and \code{"half"}, used as the sample-sample
+correlation shrinkage target when \code{fun = "BioTIP"}.}
 }
 \value{
 A vector of \code{B} values of BioTIP (or Ic) scores calculated for the state of interest.

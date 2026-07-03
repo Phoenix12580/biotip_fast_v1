@@ -72,15 +72,17 @@ function (df, samplesL, cutoff = 0.01, method = c("other", "reference",
     subm = lapply(names(subdf), function(x) subset(subdf[[x]], 
         row.names(subdf[[x]]) %in% sdtop[[x]]))
     names(subm) = tmp
-    if (any(is.na(subm))) {
-        a <- apply(subm[[i]], 1, function(x) sum(x, na.rm = TRUE))
-        tmp <- which(is.na(a))
-        if (length(tmp) > 0) 
-            subm[[i]] <- subm[[i]][-a, ]
-        b <- apply(subm[[i]], 2, function(x) sum(x, na.rm = TRUE))
-        tmp <- which(is.na(b))
-        if (length(tmp) > 0) 
-            subm[[i]] <- subm[[i]][, -b]
+    for (i in seq_along(subm)) {
+        if (any(is.na(subm[[i]]))) {
+            a <- apply(subm[[i]], 1, function(x) sum(x, na.rm = TRUE))
+            tmp <- which(is.na(a))
+            if (length(tmp) > 0) 
+                subm[[i]] <- subm[[i]][-tmp, ]
+            b <- apply(subm[[i]], 2, function(x) sum(x, na.rm = TRUE))
+            tmp <- which(is.na(b))
+            if (length(tmp) > 0) 
+                subm[[i]] <- subm[[i]][, -tmp]
+        }
     }
     return(subm)
 }
@@ -91,10 +93,8 @@ function (df, samplesL, B = 100, percent = 0.80000000000000004,
     control_df = NULL, control_samplesL = NULL, n_cores = 3, 
     doParallel = TRUE) 
 {
-    library(foreach)
-    library(doParallel)
     if (n_cores > 0 & doParallel == TRUE) {
-        n_cores_avail <- detectCores()
+        n_cores_avail <- parallel::detectCores()
         if (n_cores > n_cores_avail - 1) 
             n_cores = n_cores_avail - 1
         cat("nCore: ", n_cores, "\n")
@@ -195,8 +195,8 @@ function (df, samplesL, B = 100, percent = 0.80000000000000004,
         close(pb)
     }
     if (doParallel) {
-        cluster <- makeCluster(n_cores)
-        registerDoParallel(cluster)
+        cluster <- parallel::makeCluster(n_cores)
+        doParallel::registerDoParallel(cluster)
         n_iterations <- B
         sdtop_results <- list()
         sdtop_results <- foreach(i = 1:n_iterations) %dopar% 
@@ -262,7 +262,7 @@ function (df, samplesL, B = 100, percent = 0.80000000000000004,
                 names(sdtop) = clusterID
                 sdtop_results[[i]] <- sdtop
             }
-        stopCluster(cl = cluster)
+        parallel::stopCluster(cl = cluster)
         for (i in c(1:B)) {
             sdtop = sdtop_results[[i]]
             for (j in clusterID) {

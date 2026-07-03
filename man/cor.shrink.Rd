@@ -9,7 +9,7 @@ cor.shrink(
   Y = NULL,
   MARGIN = c(1, 2),
   shrink = TRUE,
-  target = c("zero", "average", "half")
+  target = 0
 )
 }
 \arguments{

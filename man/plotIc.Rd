@@ -8,7 +8,7 @@ plotIc(
   Ic,
   las = 0,
   order = NULL,
-  ylab = "Ic",
+  ylab = "Ic.shrink",
   col = "black",
   main = NULL,
   add = FALSE,

@@ -106,10 +106,8 @@ function (obs.x, sampleL, counts, B = 1000, fun = c("cor", "BioTIP"),
 {
     fun <- match.arg(fun)
     use <- match.arg(use)
-    library(foreach)
-    library(doParallel)
     if (n_cores > 0 & doParallel == TRUE) {
-        n_cores_avail <- detectCores()
+        n_cores_avail <- parallel::detectCores()
         if (n_cores > n_cores_avail - 1) 
             n_cores = n_cores_avail - 1
         cat("nCore: ", n_cores, "\n")
@@ -142,14 +140,14 @@ function (obs.x, sampleL, counts, B = 1000, fun = c("cor", "BioTIP"),
         close(pb)
     }
     if (doParallel) {
-        cluster <- makeCluster(n_cores)
-        registerDoParallel(cluster)
+        cluster <- parallel::makeCluster(n_cores)
+        doParallel::registerDoParallel(cluster)
         m <- foreach(i = 1:B, .combine = cbind) %dopar% {
             BioTIP::getIc(counts, sampleL = sampleL, genes = random[, 
                 i], output = output, fun = fun, shrink = shrink, 
                 use = use, PCC_sample.target = PCC_sample.target)
         }
-        stopCluster(cl = cluster)
+        parallel::stopCluster(cl = cluster)
     }
     row.names(m) = names(sampleL)
     return(m)

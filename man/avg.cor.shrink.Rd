@@ -10,7 +10,7 @@ avg.cor.shrink(
   MARGIN = c(1, 2),
   shrink = TRUE,
   abs = FALSE,
-  target = c("zero", "average", "half")
+  target = 0
 )
 }
 \arguments{

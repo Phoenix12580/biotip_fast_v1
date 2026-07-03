@@ -13,7 +13,10 @@ simulation_Ic(
   shrink = TRUE,
   use = c("everything", "all.obs", "complete.obs", "na.or.complete",
     "pairwise.complete.obs"),
-  output = c("Ic", "PCCg", "PCCs")
+  output = c("Ic", "PCCg", "PCCs"),
+  PCC_sample.target = 1,
+  n_cores = 3,
+  doParallel = TRUE
 )
 }
 \arguments{
@@ -48,6 +51,14 @@ This must be (an abbreviation of) one of the strings "everything",  "all.obs",
 
 \item{output}{A string. Please select from 'Ic',  'PCCg',  or 'PCCs'. Uses 'Ic' by default.
 'PCCg' is the PCC between genes (numerator) and 'PCCs' is PCC between samples (denominator)}
+
+\item{PCC_sample.target}{A numeric value between 0 and 1 or a character choice among
+\code{"none"}, \code{"zero"}, \code{"average"}, and \code{"half"}, used as the sample-sample
+correlation shrinkage target when \code{fun = "BioTIP"}.}
+
+\item{n_cores}{An integer giving the number of worker processes to use when \code{doParallel = TRUE}.}
+
+\item{doParallel}{A logical value indicating whether to parallelize permutation scoring.}
 }
 \value{
 A matrix of \code{y} rows and \code{B} columns where \code{y}

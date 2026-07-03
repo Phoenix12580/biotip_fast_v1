@@ -10,7 +10,8 @@ function (sce, samplesL, subDir = "newrun", smallest.population.size = 20,
     local.IC.p = TRUE, IC.rank = 1, M = NULL, permutation.method = c("gene", 
         "both", "sample"), verbose = FALSE, plot = TRUE) 
 {
-    if (!"logcounts" %in% assayNames(sce) & !"counts" %in% assayNames(sce)) 
+    assay_names <- assayNames(sce)
+    if (!"logcounts" %in% assay_names & !"counts" %in% assay_names) 
         stop("no 'counts' nor logcounts' in names(assays(sce))")
     if (!permutation.method %in% c("gene", "both", "sample")) {
         permutation.method = "gene"
@@ -85,7 +86,9 @@ function (sce, samplesL, subDir = "newrun", smallest.population.size = 20,
     }
     else dat <- sce
     if (grepl("cell_data_set", class(dat))) {
-        logmat <- as.matrix(normalized_counts(dat))
+        if (!requireNamespace("monocle3", quietly = TRUE)) 
+            stop("BioTIP.wrap requires the monocle3 package for cell_data_set input")
+        logmat <- as.matrix(getExportedValue("monocle3", "normalized_counts")(dat))
     }
     else if ((grepl("SingleCellExperiment", class(dat)))) 
         logmat <- as.matrix(logcounts(dat))
@@ -151,7 +154,7 @@ function (sce, samplesL, subDir = "newrun", smallest.population.size = 20,
                   MCIbottom))
             getTopMCI.n.states = length(x)
             CTS.candidate.ms <- getMaxMCImember(membersL[["members"]], 
-                membersL[["MCI"]], min = getTopMCI.gene.minsize, 
+                membersL[["MCI"]], minsize = getTopMCI.gene.minsize, 
                 n = n.getMaxMCImember)
             names(CTS.candidate.ms)
             CTS.candidate = getCTS(topMCI, CTS.candidate.ms[["members"]][names(topMCI)])
@@ -367,7 +370,7 @@ function (sce, samplesL, subDir = "newrun", smallest.population.size = 20,
                 names(significant) <- names(CTS.candidate)
                 cat("All CTS.candidate are insignificant in DMB model")
             }
-            if (!is.null(getTopMCI.gene.maxsiz)) {
+            if (!is.null(getTopMCI.gene.maxsize)) {
                 x <- lengths(CTS.candidate)
                 dropoff <- which(x > getTopMCI.gene.maxsize)
                 if (length(dropoff) > 0) {

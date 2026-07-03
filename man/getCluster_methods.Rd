@@ -23,7 +23,7 @@ Default is a random walk ('rw'). A method could be 'rw',  'hcm',  'km',
 \item hcm: hierarchical clustering using function \link[stats]{hclust})
 and \link[stats]{dist},  using method
 'complete'.
-\item km and pam: k-medoids or PAM algorithm using \link[TSdist]{KMedoids}.
+\item km and pam: k-medoids or PAM algorithm using \link[cluster]{pam}.
 \item natrual: if nodes are disconnected,  they may naturally cluster and form
 sub-networks.
 }}

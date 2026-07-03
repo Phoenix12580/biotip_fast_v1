@@ -84,8 +84,8 @@ function (gr, cod_gr)
         full_table$readthrough = ifelse(overlapcount > 2 & row.names(completeoverlap) %in% 
             completeoverlap, 1, 0)
     }
-    gr = GRanges(subset(full_table, readthrough == 1))
-    idx = subset(full_table, readthrough == 1)$ID
+    gr = GRanges(full_table[full_table$readthrough == 1, ])
+    idx = full_table[full_table$readthrough == 1, ]$ID
     overlaps = as.data.frame(findOverlaps(gr, cod_gr))
     splitoverlaps = split(overlaps, f = overlaps$queryHits)
     table(sapply(splitoverlaps, nrow) > 1)

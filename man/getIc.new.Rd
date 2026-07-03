@@ -7,8 +7,8 @@
 getIc.new(
   X,
   method = c("BioTIP", "Ic"),
-  PCC_sample.target = c("average", "zero", "half"),
-  output = c("IndexScore", "PCCg", "PCCs")
+  PCC_sample.target = 1,
+  output = c("Ic", "PCCg", "PCCs")
 )
 }
 \arguments{
@@ -18,11 +18,11 @@ columns correspond to samples.}
 \item{method}{A flag specifying whether to calculate the BioTIP score
 or the \eqn{I_c} score}
 
-\item{PCC_sample.target}{A character choose among ('average',  'zero', 'half'),
-indicating whether to shrink PCC towards towards their empirical common average,
-zero or 0.5 (for sample-sample correlations).}
+\item{PCC_sample.target}{A numeric value between 0 and 1 or a character choice among
+\code{"none"}, \code{"zero"}, \code{"average"}, and \code{"half"}, used as the sample-sample
+correlation shrinkage target.}
 
-\item{output}{A string. Please select from 'IndexScore',  'PCCg',  or 'PCCs'. Uses 'IndexScore' by default.
+\item{output}{A string. Please select from 'Ic',  'PCCg',  or 'PCCs'. Uses 'Ic' by default.
 'PCCg' is the PCC between genes (numerator) and 'PCCs' is PCC between samples (denominator).}
 }
 \value{
