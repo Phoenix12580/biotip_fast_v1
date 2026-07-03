@@ -10,7 +10,8 @@ getMCI_inner(
   adjust.size,
   fun = c("cor", "BioTIP"),
   PCC_gene.target = "zero",
-  M = NULL
+  M = NULL,
+  random_id = NULL
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ correlation matrix will be used to calculated the MCI score.}
 towards zero, used only for fun='BioTIP'.}
 
 \item{M}{is the overall shrunk correlation matrix, used only for fun='BioTIP'.}
+
+\item{random_id}{Optional integer row indices for the random gene set. When \code{NULL}, indices are sampled internally as in the legacy implementation.}
 }
 \value{
 A vector recording one MCI score per state.

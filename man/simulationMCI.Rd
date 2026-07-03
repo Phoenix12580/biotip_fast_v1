@@ -10,7 +10,11 @@ simulationMCI(
   df,
   adjust.size = FALSE,
   B = 1000,
-  fun = c("cor", "BioTIP")
+  fun = c("cor", "BioTIP"),
+  M = NULL,
+  n_cores = 3,
+  doParallel = FALSE,
+  progress = TRUE
 )
 }
 \arguments{
@@ -29,6 +33,14 @@ in the module) or not. Default FALSE.}
 
 \item{fun}{A character chosen between ("cor", "BioTIP"), indicating where an adjusted
 correlation matrix will be used to calculated the MCI score.}
+
+\item{M}{A pre-calculated global shrunk correlation matrix, used only for \code{fun = "BioTIP"}.}
+
+\item{n_cores}{An integer giving the number of worker processes to use when \code{doParallel = TRUE}.}
+
+\item{doParallel}{A logical value indicating whether to parallelize permutation scoring. Random gene sets are generated before parallel execution to preserve seeded outputs.}
+
+\item{progress}{A logical value indicating whether to show the progress bar in serial execution.}
 }
 \value{
 A numeric matrix indicating the MCI scores of permutation.
