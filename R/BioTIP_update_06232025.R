@@ -1407,9 +1407,10 @@ getNetwork = function(optimal, fdr = 0.05)
   #  require(psych)
   #  require(igraph)
   
-  rL = lapply(optimal, function(x) corr.test(t(x), adjust = 'fdr', ci = FALSE)$r)
+  corrL = lapply(optimal, function(x) corr.test(t(x), adjust = 'fdr', ci = FALSE))
+  rL = lapply(corrL, function(x) x$r)
   names(rL) = names(optimal)
-  pL = lapply(optimal, function(x) corr.test(t(x), adjust = 'fdr', ci = FALSE)$p)
+  pL = lapply(corrL, function(x) x$p)
   if(is.null(names(rL))) stop('give names to the input list')
   
   igraphL = list()

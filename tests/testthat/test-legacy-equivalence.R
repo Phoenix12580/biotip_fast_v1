@@ -31,3 +31,32 @@ test_that("simulationMCI preserves seeded BioTIP output", {
   expect_equal(default, expected)
   expect_equal(parallel, expected)
 })
+
+test_that("getNetwork computes one correlation test per state", {
+  set.seed(11)
+  network_input <- list(
+    state_a = matrix(rnorm(10 * 5), nrow = 10),
+    state_b = matrix(rnorm(9 * 5), nrow = 9)
+  )
+  for (nm in names(network_input)) {
+    rownames(network_input[[nm]]) <- paste0(nm, "_g", seq_len(nrow(network_input[[nm]])))
+    colnames(network_input[[nm]]) <- paste0(nm, "_s", seq_len(ncol(network_input[[nm]])))
+  }
+
+  assign(".__biotip_corr_test_call_count__", 0L, envir = .GlobalEnv)
+  trace("corr.test",
+        where = asNamespace("BioTIP"),
+        tracer = quote(assign(
+          ".__biotip_corr_test_call_count__",
+          get(".__biotip_corr_test_call_count__", envir = .GlobalEnv) + 1L,
+          envir = .GlobalEnv
+        )),
+        print = FALSE)
+  on.exit(untrace("corr.test", where = asNamespace("BioTIP")), add = TRUE)
+  on.exit(rm(".__biotip_corr_test_call_count__", envir = .GlobalEnv), add = TRUE)
+
+  suppressMessages(getNetwork(network_input, fdr = 1))
+
+  call_count <- get(".__biotip_corr_test_call_count__", envir = .GlobalEnv)
+  expect_equal(call_count, length(network_input))
+})
