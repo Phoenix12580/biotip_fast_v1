@@ -2149,7 +2149,8 @@ getMCI <- function (groups,  countsL,  adjust.size = FALSE,
 #' @author Zhezhen Wang \email{zhezhen@@uchicago.edu}; Xinan H Yang \email{xyang2@@uchicago.edu}
 
 simulationMCI  <- function (len,  samplesL,  df,  adjust.size = FALSE,  B = 1000, 
-                            fun = c("cor", "BioTIP"), M = NULL ) 
+                            fun = c("cor", "BioTIP"), M = NULL,
+                            n_cores = 3, doParallel = FALSE, progress = TRUE) 
 {
   fun <- match.arg(fun)
   PCC_gene.target = 'zero'
@@ -2158,21 +2159,36 @@ simulationMCI  <- function (len,  samplesL,  df,  adjust.size = FALSE,  B = 1000
   countsL = lapply(samplesL,  function(x) df[,  as.character(x)])
   if (is.null(names(countsL))) 
     names(countsL) = names(samplesL)
-  # create progress bar
-  pb <- txtProgressBar(min = 0,  max = B,  style = 3)
   if (fun ==  "BioTIP") {
     if(is.null(M)) M <- cor.shrink(df, Y = NULL, MARGIN = 1, shrink = TRUE, 
                                    target = PCC_gene.target)
   }
   else M = NULL
-  m <- matrix(nrow = length(samplesL), ncol = B)
-  for (i in 1:B) {
-    setTxtProgressBar(pb, i)
-    m[, i] <- getMCI_inner(len, countsL, adjust.size, fun = fun, 
-                           PCC_gene.target = PCC_gene.target, M = M)
-    Sys.sleep(0.01)
-    if (i ==  B) 
-      cat("Done!\n")
+
+  random_ids <- replicate(B, sample(1:nrow(countsL[[1]]), len), simplify = FALSE)
+  mci_inner <- getMCI_inner
+  worker <- function(i) {
+    mci_inner(len, countsL, adjust.size, fun = fun,
+              PCC_gene.target = PCC_gene.target, M = M,
+              random_id = random_ids[[i]])
+  }
+
+  if (doParallel && B > 1 && n_cores > 1) {
+    n_cores <- min(n_cores, max(1, parallel::detectCores() - 1), B)
+    cluster <- parallel::makeCluster(n_cores)
+    on.exit(parallel::stopCluster(cluster), add = TRUE)
+    cols <- parallel::parLapply(cluster, seq_len(B), worker)
+    m <- do.call(cbind, cols)
+  } else {
+    if (progress) pb <- txtProgressBar(min = 0, max = B, style = 3)
+    m <- matrix(nrow = length(samplesL), ncol = B)
+    for (i in 1:B) {
+      if (progress) setTxtProgressBar(pb, i)
+      m[, i] <- worker(i)
+      if(i ==  B && progress)
+        cat("Done!\n")
+    }
+    if (progress) close(pb)
   }
   row.names(m) = names(countsL)
   return(m)
@@ -2204,12 +2220,13 @@ simulationMCI  <- function (len,  samplesL,  df,  adjust.size = FALSE,  B = 1000
 
 getMCI_inner = function(members, countsL,  adjust.size, 
                         fun = c("cor", "BioTIP"),   
-                        PCC_gene.target = 'zero',  M = NULL
+                        PCC_gene.target = 'zero',  M = NULL,
+                        random_id = NULL
 ) 
 {
   fun <- match.arg(fun)
   
-  random_id = sample(1:nrow(countsL[[1]]), members)
+  if (is.null(random_id)) random_id = sample(1:nrow(countsL[[1]]), members)
   randomL = lapply(names(countsL),  
                    function(x) countsL[[x]][random_id, ])
   comple = lapply(names(countsL),  
