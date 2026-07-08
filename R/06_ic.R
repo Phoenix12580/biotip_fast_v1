@@ -23,38 +23,48 @@ function (counts, sampleL, genes, output = c("Ic", "PCCg", "PCCs"),
     subsetC = lapply(sampleL, function(x) subsetC[, as.character(x)])
     if (fun == "BioTIP" & PCC_gene.target == "none") 
         warning("You are not really calling BioTIP function without a proper setting of PCC_gene.target !")
-    if (fun == "BioTIP") {
-        PCCg = lapply(subsetC, function(x) avg.cor.shrink(x, 
-            MARGIN = 1, shrink = shrink, abs = TRUE, target = PCC_gene.target))
-        PCCg = unlist(PCCg)
+    get_PCCg <- function() {
+        if (fun == "BioTIP") {
+            res = lapply(subsetC, function(x) avg.cor.shrink(x, 
+                MARGIN = 1, shrink = shrink, abs = TRUE, target = PCC_gene.target))
+            res = unlist(res)
+        }
+        else {
+            res = lapply(subsetC, function(x) abs(cor(t(x), use = use)))
+            for (i in seq_along(res)) res[[i]][upper.tri(res[[i]], 
+                diag = FALSE)]
+            res = sapply(res, function(x) mean(x, na.rm = TRUE))
+        }
+        names(res) = names(sampleL)
+        res
     }
-    else {
-        PCCg = lapply(subsetC, function(x) abs(cor(t(x), use = use)))
-        for (i in seq_along(PCCg)) PCCg[[i]][upper.tri(PCCg[[i]], 
-            diag = FALSE)]
-        PCCg = sapply(PCCg, function(x) mean(x, na.rm = TRUE))
+    get_PCCs <- function() {
+        if (fun == "BioTIP") {
+            res = lapply(subsetC, function(x) avg.cor.shrink(x, 
+                MARGIN = 2, shrink = shrink, abs = FALSE, target = PCC_sample.target))
+            res = unlist(res)
+        }
+        else {
+            res = lapply(subsetC, function(x) cor(x, use = use))
+            for (i in seq_along(res)) res[[i]][upper.tri(res[[i]], 
+                diag = FALSE)]
+            res = sapply(res, function(x) mean(x, na.rm = TRUE))
+        }
+        names(res) = names(sampleL)
+        res
     }
-    if (fun == "BioTIP") {
-        PCCs = lapply(subsetC, function(x) avg.cor.shrink(x, 
-            MARGIN = 2, shrink = shrink, abs = FALSE, target = PCC_sample.target))
-        PCCs = unlist(PCCs)
-    }
-    else {
-        PCCs = lapply(subsetC, function(x) cor(x, use = use))
-        for (i in seq_along(PCCs)) PCCs[[i]][upper.tri(PCCs[[i]], 
-            diag = FALSE)]
-        PCCs = sapply(PCCs, function(x) mean(x, na.rm = TRUE))
-    }
-    toplot = PCCg/PCCs
-    names(toplot) = names(PCCg) = names(PCCs) = names(sampleL)
     if (output == "Ic") {
+        PCCg = get_PCCg()
+        PCCs = get_PCCs()
+        toplot = PCCg/PCCs
+        names(toplot) = names(sampleL)
         return(toplot)
     }
     else if (output == "PCCg") {
-        return(PCCg)
+        return(get_PCCg())
     }
     else if (output == "PCCs") {
-        return(PCCs)
+        return(get_PCCs())
     }
 }
 simulation_Ic_sample <-
@@ -168,14 +178,17 @@ function (X, method = c("BioTIP", "Ic"), PCC_sample.target = 1,
             }
     output <- match.arg(output)
     shrink = (method == "BioTIP")
-    numerator = avg.cor.shrink(X, MARGIN = 1, shrink = shrink, 
-        abs = TRUE, target = PCC_gene.target)
-    denominator = avg.cor.shrink(X, MARGIN = 2, shrink = shrink, 
-        abs = FALSE, target = PCC_sample.target)
-    if (output == "Ic") 
+    if (output == "Ic") {
+        numerator = avg.cor.shrink(X, MARGIN = 1, shrink = shrink, 
+            abs = TRUE, target = PCC_gene.target)
+        denominator = avg.cor.shrink(X, MARGIN = 2, shrink = shrink, 
+            abs = FALSE, target = PCC_sample.target)
         return(numerator/denominator)
+    }
     if (output == "PCCg") 
-        return(numerator)
+        return(avg.cor.shrink(X, MARGIN = 1, shrink = shrink, 
+            abs = TRUE, target = PCC_gene.target))
     if (output == "PCCs") 
-        return(denominator)
+        return(avg.cor.shrink(X, MARGIN = 2, shrink = shrink, 
+            abs = FALSE, target = PCC_sample.target))
 }

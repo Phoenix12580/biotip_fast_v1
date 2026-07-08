@@ -113,3 +113,54 @@ test_that("getMCI_inner computes BioTIP correlation terms once per random gene s
   expect_false(grepl("for \\(i in 1:length\\(PCCo_avg\\)", body_text))
   expect_false(grepl("for \\(i in 1:length\\(PCC_avg\\)", body_text))
 })
+
+test_that("getIc avoids unused correlation side for direct PCC outputs", {
+  counts <- matrix(seq_len(36), nrow = 4)
+  rownames(counts) <- paste0("g", seq_len(nrow(counts)))
+  colnames(counts) <- paste0("s", seq_len(ncol(counts)))
+  samplesL <- split(colnames(counts), rep(paste0("state", 1:3), each = 3))
+
+  assign(".__biotip_avg_margins__", integer(), envir = .GlobalEnv)
+  trace("avg.cor.shrink",
+        where = asNamespace("BioTIP"),
+        tracer = quote(assign(
+          ".__biotip_avg_margins__",
+          c(get(".__biotip_avg_margins__", envir = .GlobalEnv), MARGIN),
+          envir = .GlobalEnv
+        )),
+        print = FALSE)
+  on.exit(untrace("avg.cor.shrink", where = asNamespace("BioTIP")), add = TRUE)
+  on.exit(rm(".__biotip_avg_margins__", envir = .GlobalEnv), add = TRUE)
+
+  getIc(counts, samplesL, rownames(counts)[1:3], output = "PCCg", fun = "BioTIP")
+  expect_true(all(get(".__biotip_avg_margins__", envir = .GlobalEnv) == 1))
+
+  assign(".__biotip_avg_margins__", integer(), envir = .GlobalEnv)
+  getIc(counts, samplesL, rownames(counts)[1:3], output = "PCCs", fun = "BioTIP")
+  expect_true(all(get(".__biotip_avg_margins__", envir = .GlobalEnv) == 2))
+})
+
+test_that("getIc.new avoids unused correlation side for direct PCC outputs", {
+  x <- matrix(seq_len(40), nrow = 5)
+  rownames(x) <- paste0("g", seq_len(nrow(x)))
+  colnames(x) <- paste0("s", seq_len(ncol(x)))
+
+  assign(".__biotip_avg_margins__", integer(), envir = .GlobalEnv)
+  trace("avg.cor.shrink",
+        where = asNamespace("BioTIP"),
+        tracer = quote(assign(
+          ".__biotip_avg_margins__",
+          c(get(".__biotip_avg_margins__", envir = .GlobalEnv), MARGIN),
+          envir = .GlobalEnv
+        )),
+        print = FALSE)
+  on.exit(untrace("avg.cor.shrink", where = asNamespace("BioTIP")), add = TRUE)
+  on.exit(rm(".__biotip_avg_margins__", envir = .GlobalEnv), add = TRUE)
+
+  getIc.new(x, output = "PCCg")
+  expect_equal(get(".__biotip_avg_margins__", envir = .GlobalEnv), 1)
+
+  assign(".__biotip_avg_margins__", integer(), envir = .GlobalEnv)
+  getIc.new(x, output = "PCCs")
+  expect_equal(get(".__biotip_avg_margins__", envir = .GlobalEnv), 2)
+})
