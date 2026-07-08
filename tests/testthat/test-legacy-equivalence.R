@@ -99,3 +99,17 @@ test_that("hot simulation loops do not include artificial sleeps", {
     expect_false(grepl("Sys[.]sleep", body_text), info = fn)
   }
 })
+
+test_that("simulationMCI parallel path submits batched chunks without a large closure", {
+  body_text <- paste(deparse(getFromNamespace("simulationMCI", "BioTIP")), collapse = "\n")
+  expect_match(body_text, "clusterExport")
+  expect_match(body_text, "chunk_worker")
+  expect_false(grepl("parLapply\\(cluster, seq_len\\(B\\)", body_text))
+})
+
+test_that("getMCI_inner computes BioTIP correlation terms once per random gene set", {
+  body_text <- paste(deparse(getFromNamespace("getMCI_inner", "BioTIP")), collapse = "\n")
+  expect_match(body_text, "PCCo_avg_scalar")
+  expect_false(grepl("for \\(i in 1:length\\(PCCo_avg\\)", body_text))
+  expect_false(grepl("for \\(i in 1:length\\(PCC_avg\\)", body_text))
+})

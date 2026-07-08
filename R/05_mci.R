@@ -205,11 +205,12 @@ function (len, samplesL, df, adjust.size = FALSE, B = 1000, fun = c("cor",
     }
     else M = NULL
     random_ids <- replicate(B, sample(1:nrow(countsL[[1]]), len), 
-        simplify = FALSE)
+        simplify = TRUE)
+    random_ids <- matrix(random_ids, nrow = len, ncol = B)
     mci_inner <- getMCI_inner
     worker <- function(i) {
         mci_inner(len, countsL, adjust.size, fun = fun, PCC_gene.target = PCC_gene.target, 
-            M = M, random_id = random_ids[[i]])
+            M = M, random_id = random_ids[, i])
     }
     run_serial <- function() {
         if (progress) 
@@ -226,6 +227,24 @@ function (len, samplesL, df, adjust.size = FALSE, B = 1000, fun = c("cor",
             close(pb)
         m
     }
+    chunk_worker <- function(idx) {
+        countsL <- get(".BioTIP_sim_countsL", envir = .GlobalEnv)
+        random_ids <- get(".BioTIP_sim_random_ids", envir = .GlobalEnv)
+        mci_inner <- get(".BioTIP_sim_mci_inner", envir = .GlobalEnv)
+        len <- get(".BioTIP_sim_len", envir = .GlobalEnv)
+        adjust.size <- get(".BioTIP_sim_adjust_size", envir = .GlobalEnv)
+        fun <- get(".BioTIP_sim_fun", envir = .GlobalEnv)
+        PCC_gene.target <- get(".BioTIP_sim_PCC_gene_target", envir = .GlobalEnv)
+        M <- get(".BioTIP_sim_M", envir = .GlobalEnv)
+        out <- matrix(nrow = length(countsL), ncol = length(idx))
+        for (j in seq_along(idx)) {
+            out[, j] <- mci_inner(len, countsL, adjust.size, fun = fun, 
+                PCC_gene.target = PCC_gene.target, M = M, random_id = random_ids[, 
+                  idx[j]])
+        }
+        out
+    }
+    environment(chunk_worker) <- baseenv()
     if (doParallel && B > 1 && n_cores > 1) {
         n_cores <- min(n_cores, max(1, parallel::detectCores() - 
             1), B)
@@ -237,7 +256,20 @@ function (len, samplesL, df, adjust.size = FALSE, B = 1000, fun = c("cor",
         }
         else {
             on.exit(parallel::stopCluster(cluster), add = TRUE)
-            cols <- parallel::parLapply(cluster, seq_len(B), worker)
+            worker_env <- new.env(parent = emptyenv())
+            worker_env$.BioTIP_sim_countsL <- countsL
+            worker_env$.BioTIP_sim_random_ids <- random_ids
+            worker_env$.BioTIP_sim_mci_inner <- mci_inner
+            worker_env$.BioTIP_sim_len <- len
+            worker_env$.BioTIP_sim_adjust_size <- adjust.size
+            worker_env$.BioTIP_sim_fun <- fun
+            worker_env$.BioTIP_sim_PCC_gene_target <- PCC_gene.target
+            worker_env$.BioTIP_sim_M <- M
+            parallel::clusterExport(cluster, ls(worker_env, all.names = TRUE), 
+                envir = worker_env)
+            chunk_size <- ceiling(B/n_cores)
+            chunks <- split(seq_len(B), ceiling(seq_len(B)/chunk_size))
+            cols <- parallel::parLapply(cluster, chunks, chunk_worker)
             m <- do.call(cbind, cols)
         }
     }
@@ -256,23 +288,29 @@ function (members, countsL, adjust.size, fun = c("cor", "BioTIP"),
         random_id = sample(1:nrow(countsL[[1]]), members)
     randomL = lapply(names(countsL), function(x) countsL[[x]][random_id, 
         ])
-    comple = lapply(names(countsL), function(x) subset(countsL[[x]], 
-        !row.names(countsL[[x]]) %in% row.names(randomL[[x]])))
-    names(randomL) = names(comple) = names(countsL)
+    names(randomL) = names(countsL)
     if (fun == "BioTIP") {
-        PCCo_avg = array(dim = length(countsL))
-        names(PCCo_avg) = names(countsL)
-        for (i in 1:length(PCCo_avg)) {
-            PCCo_avg[i] <- mean(abs(M[rownames(comple[[i]]), 
-                rownames(randomL[[i]])]))
+        same_features <- all(vapply(countsL, function(x) identical(row.names(x), 
+            row.names(countsL[[1]])), logical(1)))
+        if (same_features) {
+            random_names <- row.names(randomL[[1]])
+            background_names <- row.names(countsL[[1]])
+            PCCo_avg_scalar <- mean(abs(M[background_names, random_names]))
+            PCC_avg_scalar <- mean(abs(M[random_names, random_names]))
+            PCCo_avg <- rep(PCCo_avg_scalar, length(countsL))
+            PCC_avg <- rep(PCC_avg_scalar, length(countsL))
+            names(PCCo_avg) = names(PCC_avg) = names(countsL)
         }
-        PCC_avg = array(dim = length(countsL))
-        names(PCC_avg) = names(countsL)
-        for (i in 1:length(PCC_avg)) {
-            PCC_avg[i] = mean(abs(M[rownames(randomL[[i]]), rownames(randomL[[i]])]))
+        else {
+            PCCo_avg = vapply(seq_along(countsL), function(i) mean(abs(M[rownames(countsL[[i]]), 
+                rownames(randomL[[i]])])), numeric(1))
+            PCC_avg = vapply(seq_along(countsL), function(i) mean(abs(M[rownames(randomL[[i]]), 
+                rownames(randomL[[i]])])), numeric(1))
+            names(PCCo_avg) = names(PCC_avg) = names(countsL)
         }
     }
     else if (fun == "cor") {
+        comple = countsL
         PCCo = lapply(names(comple), function(x) abs(cor(t(comple[[x]]), 
             t(randomL[[x]]))))
         PCCo_avg = sapply(PCCo, function(x) mean(x, na.rm = TRUE))
